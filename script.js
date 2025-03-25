@@ -1,19 +1,4 @@
-/***********************************************************
- * 1) Scrolling & Favoriting Script (your "works mint" code)
- ***********************************************************/
-async function scrollChannelAndFavoriteGifs() {
-  // PART A: Find the scroller with partial class matching
-  const scroller = document.querySelector(
-    'div[class^="scroller__"][class*="managedReactiveScroller_"]'
-  );
-  if (!scroller) {
-    console.error("❌ Could not find the Discord scroller with partial class matches.");
-    return;
-  }
-  console.log("✅ Found scroller for scrolling:", scroller);
-
-  // PART B: Hover & favorite visible GIFs
-  async function favoriteAllVisibleGifs() {
+async function favoriteAllVisibleGifs() {
     // All "imageWrapper_" elements (no gifTag_ check, because it shows on hover)
     const gifContainers = document.querySelectorAll('div[class*="imageWrapper_"]');
     if (!gifContainers.length) {
@@ -49,66 +34,8 @@ async function scrollChannelAndFavoriteGifs() {
         console.log("   - No 'Add to Favorites' button found for:", container);
       }
     }
-  }
-
-  // PART C: Scroll Up to load older messages
-  async function scrollToTopAndLoadAll() {
-    console.log("Scrolling UP to load older messages...");
-    let lastScrollTop = -1;
-
-    while (true) {
-      // Scroll up by 500px each time (tweak as needed)
-      scroller.scrollTop = Math.max(scroller.scrollTop - 500, 0);
-
-      // Wait for older messages to load
-      await new Promise(res => setTimeout(res, 2000));
-
-      // Favorite newly visible GIFs
-      await favoriteAllVisibleGifs();
-
-      // Stop if at top or can't scroll further
-      if (scroller.scrollTop === 0 || scroller.scrollTop === lastScrollTop) {
-        console.log("Reached the top or no more older messages.");
-        break;
-      }
-      lastScrollTop = scroller.scrollTop;
-    }
-  }
-
-  // PART D: Scroll Down to load newer messages
-  async function scrollToBottomAndLoadAll() {
-    console.log("Scrolling DOWN to load newer messages...");
-    let lastScrollHeight = -1;
-
-    while (true) {
-      // Jump to bottom
-      scroller.scrollTop = scroller.scrollHeight;
-
-      // Wait for newer messages
-      await new Promise(res => setTimeout(res, 2000));
-
-      // Favorite newly visible GIFs
-      await favoriteAllVisibleGifs();
-
-      // If scrollHeight doesn't grow, we've likely loaded everything
-      if (scroller.scrollHeight === lastScrollHeight) {
-        console.log("Reached the bottom or no more newer messages.");
-        break;
-      }
-      lastScrollHeight = scroller.scrollHeight;
-    }
-  }
-
-  // PART E: Execute top→bottom scroll
-  console.log("🏁 Starting top-to-bottom scroll & favorite routine...");
-  await scrollToTopAndLoadAll();
-  await scrollToBottomAndLoadAll();
-  console.log("✅ Finished scrolling & favoriting from top to bottom.");
 }
 
-/**************************************************************
- * 2) Bulk Upload Script + Replacing the Old Fav Button Logic
- **************************************************************/
 async function bulkUploadAndFavoriteGIFs() {
   const delay = ms => new Promise(r => setTimeout(r, ms));
   const input = document.createElement('input');
@@ -180,10 +107,9 @@ async function bulkUploadAndFavoriteGIFs() {
       // Wait more for the files to finish sending (tweak as needed)
       await delay(1500 + batch.length * 1000);
 
-      // === REPLACE NAIVE FAVORITE CLICKING WITH THE SCROLL+FAVORITE SCRIPT ===
-      console.log(`Favoriting all GIFs after batch #${Math.floor(i / MAX_BATCH_SIZE) + 1}...`);
-      await scrollChannelAndFavoriteGifs();
-      console.log(`✅ Done favoriting batch #${Math.floor(i / MAX_BATCH_SIZE) + 1}`);
+      //console.log(`Favoriting all GIFs after batch #${Math.floor(i / MAX_BATCH_SIZE) + 1}...`);
+      //await favoriteAllVisibleGifs();
+      //console.log(`✅ Done favoriting batch #${Math.floor(i / MAX_BATCH_SIZE) + 1}`);
 
       // Short pause before next batch
       await delay(1500);
@@ -193,5 +119,5 @@ async function bulkUploadAndFavoriteGIFs() {
   };
 }
 
-// 3) Run the bulk upload process
 bulkUploadAndFavoriteGIFs();
+favoriteAllVisibleGifs();
