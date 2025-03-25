@@ -10,17 +10,18 @@ async function bulkUploadAndFavoriteGIFs() {
         const MAX_BATCH_SIZE = 10;
         const MAX_FILE_SIZE_MB = 10;
 
-        const files = Array.from(input.files).filter(f => f.size <= MAX_FILE_SIZE_MB * 1024 * 1024);
-        const skipped = Array.from(input.files).filter(f => f.size > MAX_FILE_SIZE_MB * 1024 * 1024);
+        const allFiles = Array.from(input.files);
+        const validFiles = allFiles.filter(f => f.size <= MAX_FILE_SIZE_MB * 1024 * 1024);
+        const skippedFiles = allFiles.filter(f => f.size > MAX_FILE_SIZE_MB * 1024 * 1024);
 
-        if (skipped.length > 0) {
-            console.warn(`Skipped ${skipped.length} files (>10MB):`, skipped.map(f => f.name));
+        if (skippedFiles.length > 0) {
+            console.warn(`Skipped ${skippedFiles.length} files over 10MB:`, skippedFiles.map(f => f.name));
         }
 
         const getMessageBox = () => document.querySelector('[role="textbox"]');
 
-        for (let i = 0; i < files.length; i += MAX_BATCH_SIZE) {
-            const batch = files.slice(i, i + MAX_BATCH_SIZE);
+        for (let i = 0; i < validFiles.length; i += MAX_BATCH_SIZE) {
+            const batch = validFiles.slice(i, i + MAX_BATCH_SIZE);
             const dt = new DataTransfer();
             batch.forEach(file => dt.items.add(file));
 
@@ -35,7 +36,7 @@ async function bulkUploadAndFavoriteGIFs() {
             const messageBox = getMessageBox();
             if (messageBox) {
                 messageBox.focus();
-                document.execCommand('insertText', false, ' '); // Force input registration
+                document.execCommand('insertText', false, ' '); // Ensure Discord registers input
                 await delay(500);
 
                 const enterEvent = new KeyboardEvent('keydown', {
@@ -53,7 +54,7 @@ async function bulkUploadAndFavoriteGIFs() {
                 continue;
             }
 
-            await delay(5000 + batch.length * 1000); // Wait longer if batch is large
+            await delay(5000 + batch.length * 1000); // Adjusted wait time per batch size
 
             // Favorite all GIFs from this batch
             const favButtons = [...document.querySelectorAll('div[class*="gifFavoriteButton"][aria-label="Add to Favorites"]')].slice(-batch.length);
@@ -63,7 +64,7 @@ async function bulkUploadAndFavoriteGIFs() {
             }
             console.log(`Favorited batch ${i / MAX_BATCH_SIZE + 1}`);
 
-            await delay(4000); // Wait before starting next batch
+            await delay(4000); // Pause before next batch
         }
 
         console.log('✅ Bulk upload complete.');
