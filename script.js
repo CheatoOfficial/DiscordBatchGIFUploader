@@ -7,7 +7,7 @@ async function bulkUploadAndFavoriteGIFs() {
     input.click();
 
     input.onchange = async () => {
-        const MAX_BATCH_SIZE = 10;
+        const MAX_BATCH_SIZE = 9;
         const MAX_FILE_SIZE_MB = 10;
 
         const allFiles = Array.from(input.files);
@@ -31,17 +31,18 @@ async function bulkUploadAndFavoriteGIFs() {
 
             console.log(`Uploading batch ${i / MAX_BATCH_SIZE + 1}:`, batch.map(f => f.name));
 
-            await delay(3500); // Slightly longer wait for upload preview
+            await delay(3000); // Wait for upload preview to load
 
             const messageBox = getMessageBox();
             if (messageBox) {
                 messageBox.focus();
-                document.execCommand('insertText', false, ' ');
+                document.execCommand('insertText', false, ' '); // Ensure Discord registers input
                 await delay(500);
 
                 const enterEvent = new KeyboardEvent('keydown', {
                     key: 'Enter',
                     code: 'Enter',
+                    which: 13,
                     keyCode: 13,
                     bubbles: true,
                     cancelable: true
@@ -53,29 +54,17 @@ async function bulkUploadAndFavoriteGIFs() {
                 continue;
             }
 
-            await delay(5000 + batch.length * 1500); // Wait longer based on batch size
+            await delay(1500 + batch.length * 1000); // Adjusted wait time per batch size
 
-            // Wait explicitly for GIF favorite buttons to load
-            let attempts = 0;
-            let favButtons;
-            while (attempts < 10) {
-                favButtons = [...document.querySelectorAll('div[class*="gifFavoriteButton"][aria-label="Add to Favorites"]')].slice(-batch.length);
-                if (favButtons.length === batch.length) break;
-                await delay(1000);
-                attempts++;
+            // Favorite all GIFs from this batch
+            const favButtons = [...document.querySelectorAll('div[class*="gifFavoriteButton"][aria-label="Add to Favorites"]')].slice(-batch.length);
+            for (const btn of favButtons) {
+                btn.click();
+                await delay(500);
             }
+            console.log(`Favorited batch ${i / MAX_BATCH_SIZE + 1}`);
 
-            if (favButtons.length === batch.length) {
-                for (const btn of favButtons) {
-                    btn.click();
-                    await delay(800); // Slightly longer delay ensures click registers
-                }
-                console.log(`Favorited batch ${i / MAX_BATCH_SIZE + 1}`);
-            } else {
-                console.warn(`Failed to find all favorite buttons for batch ${i / MAX_BATCH_SIZE + 1}`);
-            }
-
-            await delay(5000); // Safe delay before next batch
+            await delay(1500); // Pause before next batch
         }
 
         console.log('✅ Bulk upload complete.');
