@@ -56,8 +56,8 @@ async function bulkUploadAndFavoriteGIFs() {
 
             await delay(1500 + batch.length * 1000); // Adjusted wait time per batch size
 
-            // Favorite all GIFs from this batch
-            const favButtons = [...document.querySelectorAll('div[class*="gifFavoriteButton"][aria-label="Add to Favorites"]')].slice(-batch.length);
+            // Favorite all GIFs in channel 
+            const favButtons = document.querySelectorAll('[aria-label="Add to Favorites"]'); 
             for (const btn of favButtons) {
                 btn.click();
                 await delay(500);
