@@ -19,16 +19,17 @@ async function favoriteAllVisibleGifs() {
         cancelable: true,
         view: window
       });
-      container.dispatchEvent(mouseOverEvent);
-
-      // Wait a bit
-      await new Promise(res => setTimeout(res, 800));
 
       // Attempt to click [aria-label="Add to Favorites"]
       const favoriteButton = container.querySelector('[aria-label="Add to Favorites"]');
       if (favoriteButton) {
         console.log("   - Clicking 'Add to Favorites':", container);
         favoriteButton.click();
+          
+      container.dispatchEvent(mouseOverEvent);
+
+      // Wait a bit
+      await new Promise(res => setTimeout(res, 800));
       } else {
         // Not every image is necessarily a GIF or the button may require more time
         console.log("   - No 'Add to Favorites' button found for:", container);
