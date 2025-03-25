@@ -31,18 +31,17 @@ async function bulkUploadAndFavoriteGIFs() {
 
             console.log(`Uploading batch ${i / MAX_BATCH_SIZE + 1}:`, batch.map(f => f.name));
 
-            await delay(3000); // Wait for upload preview to load
+            await delay(3500); // Slightly longer wait for upload preview
 
             const messageBox = getMessageBox();
             if (messageBox) {
                 messageBox.focus();
-                document.execCommand('insertText', false, ' '); // Ensure Discord registers input
+                document.execCommand('insertText', false, ' ');
                 await delay(500);
 
                 const enterEvent = new KeyboardEvent('keydown', {
                     key: 'Enter',
                     code: 'Enter',
-                    which: 13,
                     keyCode: 13,
                     bubbles: true,
                     cancelable: true
@@ -54,17 +53,29 @@ async function bulkUploadAndFavoriteGIFs() {
                 continue;
             }
 
-            await delay(5000 + batch.length * 1000); // Adjusted wait time per batch size
+            await delay(5000 + batch.length * 1500); // Wait longer based on batch size
 
-            // Favorite all GIFs from this batch
-            const favButtons = [...document.querySelectorAll('div[class*="gifFavoriteButton"][aria-label="Add to Favorites"]')].slice(-batch.length);
-            for (const btn of favButtons) {
-                btn.click();
-                await delay(500);
+            // Wait explicitly for GIF favorite buttons to load
+            let attempts = 0;
+            let favButtons;
+            while (attempts < 10) {
+                favButtons = [...document.querySelectorAll('div[class*="gifFavoriteButton"][aria-label="Add to Favorites"]')].slice(-batch.length);
+                if (favButtons.length === batch.length) break;
+                await delay(1000);
+                attempts++;
             }
-            console.log(`Favorited batch ${i / MAX_BATCH_SIZE + 1}`);
 
-            await delay(4000); // Pause before next batch
+            if (favButtons.length === batch.length) {
+                for (const btn of favButtons) {
+                    btn.click();
+                    await delay(800); // Slightly longer delay ensures click registers
+                }
+                console.log(`Favorited batch ${i / MAX_BATCH_SIZE + 1}`);
+            } else {
+                console.warn(`Failed to find all favorite buttons for batch ${i / MAX_BATCH_SIZE + 1}`);
+            }
+
+            await delay(5000); // Safe delay before next batch
         }
 
         console.log('✅ Bulk upload complete.');
